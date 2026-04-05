@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.markmap {
+  width: 100%;
+  height: 100%;
+}
+
+.markmap-foreign {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.markmap-node circle {
+  transition: r 0.3s ease, filter 0.3s ease, stroke-width 0.3s ease, stroke 0.3s ease;
+}
+
+.markmap-node text {
+  font-weight: 500;
+}
+
+.markmap-link {
+  stroke-opacity: 0.3;
+  transition: stroke-opacity 0.3s ease;
+}
+
+.dark .markmap-link {
+  stroke-opacity: 0.4;
+}
+
+.markmap-link {
+  stroke-opacity: 0.3;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
