@@ -105,11 +105,11 @@ function toMarkmapData(node: MindMapNode): { content: string; payload?: Record<s
   }
 }
 
-function buildNodeIdMap(node: MindMapNode, map: Map<string, string>, path = '') {
-  const currentPath = path === '' ? '0' : path
+function buildNodeIdMap(node: MindMapNode, map: Map<string, string>, path = '', index = 1) {
+  const currentPath = path === '' ? String(index) : `${path}.${index}`
   map.set(currentPath, node.id)
   node.children.forEach((child, i) => {
-    buildNodeIdMap(child, map, `${currentPath}.${i}`)
+    buildNodeIdMap(child, map, currentPath, i + 1)
   })
 }
 

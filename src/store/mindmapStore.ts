@@ -592,8 +592,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
         }
       } catch { /* ignore */ }
     },
-  })),
-)
+  }))
 
 let lastAutoSaveRoot: string | null = null
 useMindMapStore.subscribe(
