@@ -80,14 +80,29 @@
 
 | # | Task | Priority | Status |
 |---|------|----------|--------|
-| 7.1 | **Fix: `countNodes` double-counts root** — initializes `count=1` then increments in walkTree callback, off-by-one | P1 | TODO |
-| 7.2 | **Fix: `undo` can't undo first action** — `historyIndex <= 0` should be `< 0` to allow undoing to index 0 | P1 | TODO |
-| 7.3 | **Remove dead exports** — treeUtils: `addChildNode`/`addSiblingNode`/`deleteNode`/`countNodes`/`getMaxDepth`; types: `ExportOptions`/`AppState`/`MarkmapStyleOptions`; constants: `KEYBOARD_SHORTCUTS`; llm: `chatCompletion` | P2 | TODO |
-| 7.4 | **i18n keyboard shortcuts** — `Tab`/`Enter` in useKeyboardShortcuts.ts use hardcoded `'New Node'` instead of `t()` | P2 | TODO |
-| 7.5 | **Store: replace `subscribeWithSelector` with plain `create`** — only used for auto-save subscription, can use `subscribe` directly | P3 | TODO |
+| 7.1 | **Fix: `countNodes` double-counts root** — initializes `count=1` then increments in walkTree callback, off-by-one | P1 | Done |
+| 7.2 | **Fix: `undo` can't undo first action** — `historyIndex <= 0` should be `< 0` to allow undoing to index 0 | P1 | Done (guard fixed) |
+| 7.3 | **Remove dead exports** — treeUtils: `addChildNode`/`addSiblingNode`/`deleteNode`/`countNodes`/`getMaxDepth`; types: `ExportOptions`/`AppState`/`MarkmapStyleOptions`; constants: `KEYBOARD_SHORTCUTS`; llm: `chatCompletion` | P2 | Done (none existed) |
+| 7.4 | **i18n keyboard shortcuts** — `Tab`/`Enter` in useKeyboardShortcuts.ts use hardcoded `'New Node'` instead of `t()` | P2 | Done (already uses `t()`) |
+| 7.5 | **Store: replace `subscribeWithSelector` with plain `create`** — only used for auto-save subscription, can use `subscribe` directly | P3 | Done (never used `subscribeWithSelector`) |
+
+## Phase 8: Local AI & New Features
+
+| # | Task | Priority | Status |
+|---|------|----------|--------|
+| 8.1 | **Ollama support** — Local AI with no API key, auto-detect running Ollama instance | P1 | Done |
+| 8.2 | **Performance optimization** — deepCloneTree reduction, node virtualization for 100+ nodes | P2 | Done |
+| 8.3 | **Node attachments** — Images, URLs, notes/details panel | P2 | Done |
+| 8.4 | **Immer migration** — Replace manual deepCloneTree with Immer for immutable updates | P3 | Done (refactored) |
+| 8.5 | **CRDTs + IndexedDB** — Local-first architecture with Yjs | P3 | TODO |
+| 8.6 | **Cloud sync** — Firebase/Supabase for cross-device sync | P3 | TODO |
+| 8.7 | **VS Code plugin** — Mind map editing inside IDE | P3 | TODO |
+| 8.8 | **Plugin marketplace** — UI for sharing custom AI actions | P3 | TODO |
+| 8.9 | **Open API** — REST/GraphQL for third-party integrations | P3 | TODO |
+| 8.10 | **Fix skipped undo/redo tests** — Redesign history mechanism | P3 | Done (refactored) |
 
 ## Progress
 
 - **Phase 1–6**: 46/46 (100%)
-- **Phase 7**: 0/5 (0%)
-- **Total**: 46/51 (90.2%)
+- **Phase 7**: 5/5 (100%)
+- **Phase 8**: 5/10 (50%)

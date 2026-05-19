@@ -5,6 +5,11 @@ export interface MindMapNode {
   payload?: {
     fold?: 0 | 1 | 2
     color?: string
+    attachment?: {
+      imageUrl?: string
+      linkUrl?: string
+      note?: string
+    }
     [key: string]: unknown
   }
 }
@@ -33,6 +38,7 @@ export interface Settings {
 export interface HistoryEntry {
   root: MindMapNode
   selectedNodeId: string | null
+  selectedNodeIds: string[]
 }
 
 export type AIAction = 'expand' | 'refine' | 'reorganize' | 'summarize' | 'brainstorm'

@@ -42,8 +42,8 @@ export async function chatCompletionStream(
 ): Promise<void> {
   const { apiKey, baseUrl, model } = config
 
-  if (!apiKey) {
-    callbacks.onError(new LLMError('API Key is not configured. Please set it in Settings.'))
+  if (!apiKey && baseUrl.includes('localhost')) {
+    callbacks.onError(new LLMError('Ollama is not running. Please start Ollama and try again.'))
     return
   }
 

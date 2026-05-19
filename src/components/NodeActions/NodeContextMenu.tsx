@@ -9,6 +9,9 @@ import {
   Trash2,
   AlertTriangle,
   Palette,
+  Image,
+  Link2,
+  FileText,
 } from 'lucide-react'
 import type { AIAction, ContextMenuPosition, CustomAction } from '@/types'
 import { AI_ACTIONS } from '@/constants'
@@ -119,7 +122,35 @@ export function NodeContextMenu() {
     [nodeId, setNodeColor],
   )
 
+  const setNodeAttachment = useMindMapStore((s) => s.setNodeAttachment)
   const currentNode = nodeId ? findNodeById(root, nodeId) : null
+
+  const handleAddImage = useCallback(() => {
+    if (!nodeId) return
+    const url = window.prompt(t('输入图片 URL', 'Enter image URL', language))
+    if (url) {
+      setNodeAttachment(nodeId, { ...currentNode?.payload?.attachment, imageUrl: url })
+    }
+    setVisible(false)
+  }, [nodeId, language, currentNode, setNodeAttachment])
+
+  const handleAddLink = useCallback(() => {
+    if (!nodeId) return
+    const url = window.prompt(t('输入链接 URL', 'Enter link URL', language))
+    if (url) {
+      setNodeAttachment(nodeId, { ...currentNode?.payload?.attachment, linkUrl: url })
+    }
+    setVisible(false)
+  }, [nodeId, language, currentNode, setNodeAttachment])
+
+  const handleAddNote = useCallback(() => {
+    if (!nodeId) return
+    const note = window.prompt(t('输入备注', 'Enter note', language), currentNode?.payload?.attachment?.note ?? '')
+    if (note !== null) {
+      setNodeAttachment(nodeId, { ...currentNode?.payload?.attachment, note })
+    }
+    setVisible(false)
+  }, [nodeId, language, currentNode, setNodeAttachment])
 
   const NODE_COLORS = [
     '#ef4444', '#f97316', '#eab308', '#22c55e',
@@ -242,6 +273,55 @@ export function NodeContextMenu() {
           <Trash2 size={15} className="shrink-0" />
           <span>{t(`删除选中 (${selectedNodeIds.size})`, `Delete Selected (${selectedNodeIds.size})`, language)}</span>
         </button>
+      )}
+
+      <div className="my-1 mx-2 border-t border-gray-100 dark:border-gray-800" />
+
+      <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+        {t('附件', 'Attachments', language)}
+      </div>
+      <button
+        className="w-full flex items-center gap-3 px-3 py-2 text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
+        onClick={handleAddImage}
+        role="menuitem"
+      >
+        <Image size={15} className="shrink-0" />
+        <span>{t('添加图片', 'Add Image', language)}</span>
+      </button>
+      <button
+        className="w-full flex items-center gap-3 px-3 py-2 text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
+        onClick={handleAddLink}
+        role="menuitem"
+      >
+        <Link2 size={15} className="shrink-0" />
+        <span>{t('添加链接', 'Add Link', language)}</span>
+      </button>
+      <button
+        className="w-full flex items-center gap-3 px-3 py-2 text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
+        onClick={handleAddNote}
+        role="menuitem"
+      >
+        <FileText size={15} className="shrink-0" />
+        <span>{t('添加备注', 'Add Note', language)}</span>
+      </button>
+      {currentNode?.payload?.attachment && (
+        <div className="mx-2 my-1 px-2 py-1.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-[11px] space-y-1">
+          {currentNode.payload.attachment.imageUrl && (
+            <div className="flex items-center gap-1 text-blue-500 truncate">
+              <Image size={11} /> {t('图片', 'Image', language)}
+            </div>
+          )}
+          {currentNode.payload.attachment.linkUrl && (
+            <div className="flex items-center gap-1 text-blue-500 truncate">
+              <Link2 size={11} /> {t('链接', 'Link', language)}
+            </div>
+          )}
+          {currentNode.payload.attachment.note && (
+            <div className="flex items-center gap-1 text-gray-500 truncate">
+              <FileText size={11} /> {currentNode.payload.attachment.note.slice(0, 30)}
+            </div>
+          )}
+        </div>
       )}
 
       <div className="my-1 mx-2 border-t border-gray-100 dark:border-gray-800" />

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { X, Clock, Trash2, RotateCcw } from 'lucide-react'
 import { STORAGE_KEYS } from '@/constants'
 import { useMindMapStore } from '@/store/mindmapStore'
@@ -44,7 +44,8 @@ export function SessionHistory({ open, onClose }: SessionHistoryProps) {
   const root = useMindMapStore((s) => s.root)
   const loadMindmap = useMindMapStore((s) => s.loadMindmap)
 
-  const sessions = open ? readSessions() : []
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const sessions = useMemo(() => readSessions(), [open, version])
 
   const handleSave = useCallback(() => {
     const currentSessions = readSessions()

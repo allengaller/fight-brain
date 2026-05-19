@@ -28,6 +28,7 @@ interface MindMapStore {
   deleteNode: (nodeId: string) => void
   updateContent: (nodeId: string, content: string) => void
   toggleCollapse: (nodeId: string) => void
+  setNodeAttachment: (nodeId: string, attachment: { imageUrl?: string; linkUrl?: string; note?: string } | undefined) => void
   performAIAction: (action: AIAction, nodeId: string) => Promise<void>
   cancelGeneration: () => void
   undo: () => void
@@ -53,11 +54,12 @@ interface MindMapStore {
 
 const MAX_HISTORY = 50
 
-function pushHistory(state: { root: MindMapNode; selectedNodeId: string | null; history: HistoryEntry[]; historyIndex: number }) {
+function pushHistory(state: { root: MindMapNode; selectedNodeId: string | null; selectedNodeIds: Set<string>; history: HistoryEntry[]; historyIndex: number }, preRoot: MindMapNode) {
   const newHistory = state.history.slice(0, state.historyIndex + 1)
   newHistory.push({
-    root: deepCloneTree(state.root),
+    root: deepCloneTree(preRoot),
     selectedNodeId: state.selectedNodeId,
+    selectedNodeIds: Array.from(state.selectedNodeIds),
   })
   if (newHistory.length > MAX_HISTORY) newHistory.shift()
   return { history: newHistory, historyIndex: newHistory.length - 1 }
@@ -103,7 +105,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
       const state = get()
       set({
         root,
-        ...pushHistory({ ...state, root }),
+        ...pushHistory({ ...state, root }, state.root),
       })
     },
 
@@ -137,7 +139,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
       }
       set({
         root: newRoot,
-        ...pushHistory({ ...state, root: newRoot }),
+        ...pushHistory({ ...state, root: newRoot }, state.root),
       })
     },
 
@@ -157,7 +159,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
       }
       set({
         root: newRoot,
-        ...pushHistory({ ...state, root: newRoot }),
+        ...pushHistory({ ...state, root: newRoot }, state.root),
       })
     },
 
@@ -181,7 +183,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
       set({
         root: newRoot,
         selectedNodeId: state.selectedNodeId === nodeId ? null : state.selectedNodeId,
-        ...pushHistory({ ...state, root: newRoot, selectedNodeId: state.selectedNodeId }),
+        ...pushHistory({ ...state, root: newRoot, selectedNodeId: state.selectedNodeId }, state.root),
       })
     },
 
@@ -191,7 +193,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
       updateNodeContent(newRoot, nodeId, content)
       set({
         root: newRoot,
-        ...pushHistory({ ...state, root: newRoot }),
+        ...pushHistory({ ...state, root: newRoot }, state.root),
       })
     },
 
@@ -203,7 +205,22 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
         const current = node.payload?.fold ?? 0
         node.payload = { ...node.payload, fold: current === 0 ? 1 : 0 }
       }
-      set({ root: newRoot })
+      set({
+        root: newRoot,
+        ...pushHistory({ ...state, root: newRoot }, state.root),
+      })
+    },
+
+    setNodeAttachment: (nodeId, attachment) => {
+      const state = get()
+      const newRoot = deepCloneTree(state.root)
+      const node = findNodeById(newRoot, nodeId)
+      if (!node) return
+      node.payload = { ...node.payload, attachment }
+      set({
+        root: newRoot,
+        ...pushHistory({ ...state, root: newRoot }, state.root),
+      })
     },
 
     performAIAction: async (action, nodeId) => {
@@ -273,7 +290,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
             updateNodeContent(newRoot, nodeId, result)
             set({
               root: newRoot,
-              ...pushHistory({ ...currentState, root: newRoot }),
+              ...pushHistory({ ...currentState, root: newRoot }, currentState.root),
             })
           } else {
             set({ error: (currentState.settings.language === 'zh' ? '无法解析 AI 响应。' : 'Failed to parse AI response. ') + fullText.slice(0, 100) })
@@ -289,7 +306,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
             }
             set({
               root: newRoot,
-              ...pushHistory({ ...currentState, root: newRoot }),
+              ...pushHistory({ ...currentState, root: newRoot }, currentState.root),
             })
           }
         } else {
@@ -306,7 +323,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
               }
               set({
                 root: newRoot,
-                ...pushHistory({ ...currentState, root: newRoot }),
+                ...pushHistory({ ...currentState, root: newRoot }, currentState.root),
               })
             }
           } else {
@@ -340,18 +357,20 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
       set({
         root: deepCloneTree(entry.root),
         selectedNodeId: entry.selectedNodeId,
+        selectedNodeIds: new Set(entry.selectedNodeIds),
         historyIndex: newIndex,
       })
     },
 
     redo: () => {
       const state = get()
-      if (state.historyIndex >= state.history.length - 1) return
       const newIndex = state.historyIndex + 1
+      if (newIndex >= state.history.length) return
       const entry = state.history[newIndex]
       set({
         root: deepCloneTree(entry.root),
         selectedNodeId: entry.selectedNodeId,
+        selectedNodeIds: new Set(entry.selectedNodeIds),
         historyIndex: newIndex,
       })
     },
@@ -366,7 +385,8 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
       set({
         root: newRoot,
         selectedNodeId: null,
-        history: [{ root: deepCloneTree(newRoot), selectedNodeId: null }],
+        selectedNodeIds: new Set(),
+        history: [{ root: deepCloneTree(newRoot), selectedNodeId: null, selectedNodeIds: [] }],
         historyIndex: 0,
       })
     },
@@ -377,7 +397,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
       set({
         root: newRoot,
         selectedNodeId: null,
-        ...pushHistory({ ...state, root: newRoot, selectedNodeId: null }),
+        ...pushHistory({ ...state, root: newRoot, selectedNodeId: null }, state.root),
       })
     },
 
@@ -396,7 +416,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
         if (stored) {
           const data = JSON.parse(stored) as MindMapNode
           if (data?.id && data?.content && Array.isArray(data?.children)) {
-            set({ root: data, selectedNodeId: null, history: [], historyIndex: -1 })
+            set({ root: data, selectedNodeId: null, selectedNodeIds: new Set(), history: [], historyIndex: -1 })
             return true
           }
         }
@@ -454,7 +474,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
 
       set({
         root: newRoot,
-        ...pushHistory({ ...state, root: newRoot }),
+        ...pushHistory({ ...state, root: newRoot }, state.root),
       })
     },
 
@@ -470,7 +490,10 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
         if (node.payload) delete node.payload.color
         if (node.payload && Object.keys(node.payload).length === 0) node.payload = undefined
       }
-      set({ root: newRoot })
+      set({
+        root: newRoot,
+        ...pushHistory({ ...state, root: newRoot }, state.root),
+      })
     },
 
     deleteSelectedNodes: () => {
@@ -491,7 +514,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
         root: newRoot,
         selectedNodeId: null,
         selectedNodeIds: new Set(),
-        ...pushHistory({ ...state, root: newRoot, selectedNodeId: null }),
+        ...pushHistory({ ...state, root: newRoot, selectedNodeId: null }, state.root),
       })
     },
 
@@ -546,14 +569,14 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
           const targetNode = findNodeById(newRoot, nodeId)
           if (targetNode) {
             targetNode.children.push(...items.map(content => createNode(content)))
-            set({ root: newRoot, ...pushHistory({ ...currentState, root: newRoot }) })
+            set({ root: newRoot, ...pushHistory({ ...currentState, root: newRoot }, currentState.root) })
           }
         } else {
           const text = parseTextResponse(fullText)
           if (text) {
             const newRoot = deepCloneTree(currentState.root)
             updateNodeContent(newRoot, nodeId, text)
-            set({ root: newRoot, ...pushHistory({ ...currentState, root: newRoot }) })
+            set({ root: newRoot, ...pushHistory({ ...currentState, root: newRoot }, currentState.root) })
           } else {
             set({ error: (currentState.settings.language === 'zh' ? '无法解析 AI 响应。' : 'Failed to parse AI response. ') + fullText.slice(0, 100) })
           }

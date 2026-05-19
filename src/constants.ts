@@ -11,31 +11,61 @@ export const PRESET_MODELS = [
     name: 'Kimi K2.5',
     baseUrl: 'https://api.moonshot.cn/v1',
     model: 'kimi-k2.5',
+    apiKeyRequired: true,
   },
   {
     name: 'Kimi K2 Turbo',
     baseUrl: 'https://api.moonshot.cn/v1',
     model: 'kimi-k2-turbo-preview',
+    apiKeyRequired: true,
   },
   {
     name: 'Moonshot v1 128K',
     baseUrl: 'https://api.moonshot.cn/v1',
     model: 'moonshot-v1-128k',
+    apiKeyRequired: true,
   },
   {
     name: 'OpenAI GPT-4o',
     baseUrl: 'https://api.openai.com/v1',
     model: 'gpt-4o',
+    apiKeyRequired: true,
   },
   {
     name: 'OpenAI GPT-4o-mini',
     baseUrl: 'https://api.openai.com/v1',
     model: 'gpt-4o-mini',
+    apiKeyRequired: true,
+  },
+  {
+    name: 'Ollama (Local)',
+    baseUrl: 'http://localhost:11434/v1',
+    model: 'llama3.2',
+    apiKeyRequired: false,
+  },
+  {
+    name: 'Ollama - Phi4',
+    baseUrl: 'http://localhost:11434/v1',
+    model: 'phi4',
+    apiKeyRequired: false,
+  },
+  {
+    name: 'Ollama - Qwen2.5',
+    baseUrl: 'http://localhost:11434/v1',
+    model: 'qwen2.5:7b',
+    apiKeyRequired: false,
+  },
+  {
+    name: 'Ollama - Mistral',
+    baseUrl: 'http://localhost:11434/v1',
+    model: 'mistral',
+    apiKeyRequired: false,
   },
   {
     name: 'Custom',
     baseUrl: '',
     model: '',
+    apiKeyRequired: true,
   },
 ] as const
 

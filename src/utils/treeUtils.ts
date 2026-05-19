@@ -85,3 +85,23 @@ export function collectAllNodes(node: MindMapNode): MindMapNode[] {
   })
   return result
 }
+
+export function countNodes(node: MindMapNode): number {
+  let count = 0
+  walkTree(node, () => {
+    count++
+  })
+  return count
+}
+
+export function getMaxDepth(node: MindMapNode): number {
+  let maxDepth = 0
+  function walk(n: MindMapNode, depth: number) {
+    if (depth > maxDepth) maxDepth = depth
+    for (const child of n.children) {
+      walk(child, depth + 1)
+    }
+  }
+  walk(node, 0)
+  return maxDepth
+}

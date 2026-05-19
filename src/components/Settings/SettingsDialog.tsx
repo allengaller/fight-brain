@@ -17,9 +17,29 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const lang = settings.language
 
   const [activeTab, setActiveTab] = useState<'llm' | 'general' | 'actions'>('llm')
+  const [selectedPresetIdx, setSelectedPresetIdx] = useState<number | null>(null)
   const customActions = useMindMapStore((s) => s.customActions)
   const addCustomAction = useMindMapStore((s) => s.addCustomAction)
   const removeCustomAction = useMindMapStore((s) => s.removeCustomAction)
+
+  const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const idx = Number(e.target.value)
+    setSelectedPresetIdx(idx)
+    const preset = PRESET_MODELS[idx]
+    if (preset) {
+      updateSettings({
+        llm: {
+          ...settings.llm,
+          baseUrl: preset.baseUrl || settings.llm.baseUrl,
+          model: preset.model || settings.llm.model,
+          apiKey: preset.apiKeyRequired ? settings.llm.apiKey : '',
+        },
+      })
+    }
+  }
+
+  const currentPreset = selectedPresetIdx != null ? PRESET_MODELS[selectedPresetIdx] : null
+  const needsApiKey = !currentPreset || currentPreset.apiKeyRequired
 
   if (!open) return null
 
@@ -61,20 +81,8 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                 </label>
                 <select
                   className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  value=""
-                  onChange={(e) => {
-                    const idx = Number(e.target.value)
-                    const preset = PRESET_MODELS[idx]
-                    if (preset) {
-                      updateSettings({
-                        llm: {
-                          ...settings.llm,
-                          baseUrl: preset.baseUrl || settings.llm.baseUrl,
-                          model: preset.model || settings.llm.model,
-                        },
-                      })
-                    }
-                  }}
+                  value={selectedPresetIdx ?? ''}
+                  onChange={handlePresetChange}
                 >
                   <option value="">Select a preset...</option>
                   {PRESET_MODELS.map((preset, i) => (
@@ -115,23 +123,37 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  API Key
-                </label>
-                <input
-                  type="password"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono"
-                  value={settings.llm.apiKey}
-                  onChange={(e) =>
-                    updateSettings({ llm: { ...settings.llm, apiKey: e.target.value } })
-                  }
-                  placeholder="sk-..."
-                />
-                <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
-                  Your API key is stored locally in your browser and never sent to any server except the LLM API endpoint.
-                </p>
-              </div>
+              {needsApiKey && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    API Key
+                  </label>
+                  <input
+                    type="password"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono"
+                    value={settings.llm.apiKey}
+                    onChange={(e) =>
+                      updateSettings({ llm: { ...settings.llm, apiKey: e.target.value } })
+                    }
+                    placeholder="sk-..."
+                  />
+                  <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
+                    Your API key is stored locally in your browser and never sent to any server except the LLM API endpoint.
+                  </p>
+                </div>
+              )}
+              {!needsApiKey && (
+                <div className="flex items-start gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-lg">
+                  <div>
+                    <div className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                      {t('本地模式', 'Local Mode', lang)}
+                    </div>
+                    <div className="text-xs text-emerald-600 dark:text-emerald-500">
+                      {t('无需 API Key，确保 Ollama 已运行', 'No API Key needed. Ensure Ollama is running', lang)}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

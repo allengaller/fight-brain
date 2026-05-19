@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback, useEffect, useMemo } from 'react'
 import { Markmap } from 'markmap-view'
 import type { MindMapNode } from '@/types'
 import { useMindMapStore } from '@/store/mindmapStore'
@@ -8,11 +8,15 @@ export function MarkmapProvider({ children }: { children: React.ReactNode }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const mmRef = useRef<Markmap | null>(null)
   const nodeIdMap = useRef<Map<string, string>>(new Map())
+  const nodeIdsInjected = useRef(false)
+  const resizeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const root = useMindMapStore((s) => s.root)
   const settings = useMindMapStore((s) => s.settings)
   const selectedNodeId = useMindMapStore((s) => s.selectedNodeId)
   const selectedNodeIds = useMindMapStore((s) => s.selectedNodeIds)
+
+  const markmapData = useMemo(() => toMarkmapData(root), [root])
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -50,18 +54,22 @@ export function MarkmapProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!mmRef.current) return
-    const data = toMarkmapData(root)
     nodeIdMap.current.clear()
     buildNodeIdMap(root, nodeIdMap.current)
-    mmRef.current.setData(data)
+    mmRef.current.setData(markmapData)
     if (useMindMapStore.getState().settings.autoFit) {
       mmRef.current.fit()
     }
+    nodeIdsInjected.current = false
     requestAnimationFrame(() => {
-      injectNodeIds(svgRef.current, nodeIdMap.current)
+      if (!nodeIdsInjected.current) {
+        injectNodeIds(svgRef.current, nodeIdMap.current)
+        nodeIdsInjected.current = true
+      }
       updateSelectionHighlight(svgRef.current, selectedNodeId, selectedNodeIds)
     })
-  }, [root, selectedNodeId, selectedNodeIds])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markmapData, selectedNodeId, selectedNodeIds])
 
   const fit = useCallback(() => {
     mmRef.current?.fit()
@@ -76,17 +84,16 @@ export function MarkmapProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const svg = svgRef.current
     if (!svg) return
-    let timer: ReturnType<typeof setTimeout> | null = null
     const observer = new ResizeObserver(() => {
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => {
+      if (resizeTimer.current) clearTimeout(resizeTimer.current)
+      resizeTimer.current = setTimeout(() => {
         mmRef.current?.fit()
       }, 300)
     })
     observer.observe(svg.parentElement ?? svg)
     return () => {
       observer.disconnect()
-      if (timer) clearTimeout(timer)
+      if (resizeTimer.current) clearTimeout(resizeTimer.current)
     }
   }, [svgRef])
 

@@ -43,10 +43,6 @@ html, body, #root {
   stroke-opacity: 0.4;
 }
 
-.markmap-link {
-  stroke-opacity: 0.3;
-}
-
 ::-webkit-scrollbar {
   width: 6px;
 }
