@@ -5,6 +5,8 @@ import { createRootNode, deepCloneTree, findNodeById, getNodePath, replaceNodeCh
 import { chatCompletionStream } from '@/services/llm'
 import { buildPrompt, parseJSONResponse, parseTextResponse } from '@/utils/prompts'
 
+type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline'
+
 interface MindMapStore {
   root: MindMapNode
   selectedNodeId: string | null
@@ -18,6 +20,7 @@ interface MindMapStore {
   historyIndex: number
   _abortController: AbortController | null
   customActions: CustomAction[]
+  syncStatus: SyncStatus
 
   setRoot: (root: MindMapNode) => void
   selectNode: (id: string | null) => void
@@ -100,6 +103,7 @@ export const useMindMapStore = create<MindMapStore>()((set, get) => ({
     historyIndex: -1,
     _abortController: null,
     customActions: [],
+    syncStatus: 'idle' as const,
 
     setRoot: (root) => {
       const state = get()
